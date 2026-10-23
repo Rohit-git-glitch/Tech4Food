@@ -120,8 +120,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Failed to load application data:', err);
       showToast({
         type: 'error',
-        title: 'Storage Error',
-        message: 'Could not load data from storage. Falling back to defaults.',
+        title: 'Backend Connection Error',
+        message: err instanceof Error ? err.message : 'Could not fetch inventory from FastAPI backend.',
       });
     } finally {
       setLoading(false);

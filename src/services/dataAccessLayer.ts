@@ -96,6 +96,112 @@ class LocalInventoryService implements IInventoryService {
   }
 }
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:8001/api/v1';
+
+class ApiInventoryService implements IInventoryService {
+  private endpoint = `${API_BASE_URL}/inventory`;
+
+  async getAll(): Promise<FoodItem[]> {
+    try {
+      const res = await fetch(this.endpoint, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+
+      if (!res.ok) {
+        const errorDetail = await res.text().catch(() => '');
+        throw new Error(
+          `FastAPI returned HTTP ${res.status} (${res.statusText}): ${errorDetail}`
+        );
+      }
+
+      const data: FoodItem[] = await res.json();
+      return data;
+    } catch (err: any) {
+      // Do not silently fall back to stale localStorage. Re-throw with clear message.
+      throw new Error(
+        `Failed to fetch inventory from FastAPI backend at ${this.endpoint}: ${err?.message || err}`
+      );
+    }
+  }
+
+  async create(data: Omit<FoodItem, 'id' | 'dateAdded'>): Promise<FoodItem> {
+    const res = await fetch(this.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorDetail = await res.text().catch(() => '');
+      throw new Error(
+        `FastAPI create item failed (HTTP ${res.status}): ${errorDetail}`
+      );
+    }
+
+    return await res.json();
+  }
+
+  async update(id: string, updates: Partial<FoodItem>): Promise<FoodItem> {
+    const res = await fetch(`${this.endpoint}/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+
+    if (!res.ok) {
+      const errorDetail = await res.text().catch(() => '');
+      throw new Error(
+        `FastAPI update item failed (HTTP ${res.status}): ${errorDetail}`
+      );
+    }
+
+    return await res.json();
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const res = await fetch(`${this.endpoint}/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (!res.ok) {
+      const errorDetail = await res.text().catch(() => '');
+      throw new Error(
+        `FastAPI delete item failed (HTTP ${res.status}): ${errorDetail}`
+      );
+    }
+
+    return true;
+  }
+
+  async moveLocation(id: string, targetLocation: StorageLocation): Promise<FoodItem> {
+    const res = await fetch(`${this.endpoint}/${encodeURIComponent(id)}/location`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ targetLocation }),
+    });
+
+    if (!res.ok) {
+      const errorDetail = await res.text().catch(() => '');
+      throw new Error(
+        `FastAPI relocate item failed (HTTP ${res.status}): ${errorDetail}`
+      );
+    }
+
+    return await res.json();
+  }
+}
+
 class LocalSensorService implements ISensorService {
   async getLatest(): Promise<SensorReading> {
     const history = storageService.getSensorHistory();
@@ -190,7 +296,7 @@ class LocalSettingsService implements ISettingsService {
 }
 
 // Export singleton instances
-export const inventoryService: IInventoryService = new LocalInventoryService();
+export const inventoryService: IInventoryService = new ApiInventoryService();
 export const sensorService: ISensorService = new LocalSensorService();
 export const alertService: IAlertService = new LocalAlertService();
 export const activityService: IActivityService = new LocalActivityService();
