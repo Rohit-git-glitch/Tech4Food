@@ -264,3 +264,15 @@ class InMemoryInventoryRepository(BaseInventoryRepository):
 
     def get_provider_name(self) -> str:
         return "in-memory-demo"
+
+    def claim_notification(self, alert_key: str) -> bool:
+        if not hasattr(self, "_notification_keys"):
+            self._notification_keys: set[str] = set()
+        if alert_key in self._notification_keys:
+            return False
+        self._notification_keys.add(alert_key)
+        return True
+
+    def release_notification(self, alert_key: str) -> None:
+        if hasattr(self, "_notification_keys"):
+            self._notification_keys.discard(alert_key)

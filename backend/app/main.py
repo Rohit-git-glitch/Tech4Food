@@ -1,3 +1,6 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -9,7 +12,21 @@ from .routers import (
     alerts_router,
     activities_router,
     ai_router,
+    telegram_router,
 )
+from .services.telegram_scheduler import run_telegram_alert_scheduler
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    stop_event = asyncio.Event()
+    task = None
+    if get_settings().telegram_alerts_enabled:
+        task = asyncio.create_task(run_telegram_alert_scheduler(stop_event))
+    yield
+    if task:
+        stop_event.set()
+        await task
 
 settings = get_settings()
 
@@ -22,6 +39,7 @@ REST API supporting the Tech4Food intelligent food inventory and food safety mon
 Provides real-time CRUD operations, food categorization, shelf-life review projections, and placeholder contracts for telemetry, alerts, and audit logging.
     """,
     version=settings.api_version,
+    lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -43,6 +61,7 @@ app.include_router(telemetry_router, prefix=settings.api_prefix)
 app.include_router(alerts_router, prefix=settings.api_prefix)
 app.include_router(activities_router, prefix=settings.api_prefix)
 app.include_router(ai_router, prefix=settings.api_prefix)
+app.include_router(telegram_router, prefix=settings.api_prefix)
 
 
 @app.get("/", include_in_schema=False)

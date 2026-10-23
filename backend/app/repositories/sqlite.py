@@ -163,6 +163,12 @@ class SqliteInventoryRepository(BaseInventoryRepository):
             conn.execute("CREATE INDEX IF NOT EXISTS idx_food_items_location ON food_items(location);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_food_items_category ON food_items(category);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_food_items_status ON food_items(status);")
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS notification_deliveries (
+                    alert_key TEXT PRIMARY KEY NOT NULL,
+                    claimed_at TEXT NOT NULL
+                );
+            """)
 
             if auto_seed:
                 cursor = conn.execute("SELECT COUNT(*) as count FROM food_items;")
@@ -383,6 +389,25 @@ class SqliteInventoryRepository(BaseInventoryRepository):
 
     def get_provider_name(self) -> str:
         return "sqlite"
+
+    def claim_notification(self, alert_key: str) -> bool:
+        claimed_at = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                """
+                INSERT OR IGNORE INTO notification_deliveries (alert_key, claimed_at)
+                VALUES (?, ?)
+                """,
+                (alert_key, claimed_at),
+            )
+            return cursor.rowcount == 1
+
+    def release_notification(self, alert_key: str) -> None:
+        with self._get_connection() as conn:
+            conn.execute(
+                "DELETE FROM notification_deliveries WHERE alert_key = ?",
+                (alert_key,),
+            )
 
     def count(self) -> int:
         """Returns total number of items stored in database."""

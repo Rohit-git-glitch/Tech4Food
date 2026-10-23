@@ -4,6 +4,7 @@ from .telemetry import router as telemetry_router
 from .alerts import router as alerts_router
 from .activities import router as activities_router
 from .ai import router as ai_router
+from .telegram import router as telegram_router
 
 __all__ = [
     "health_router",
@@ -12,4 +13,5 @@ __all__ = [
     "alerts_router",
     "activities_router",
     "ai_router",
+    "telegram_router",
 ]

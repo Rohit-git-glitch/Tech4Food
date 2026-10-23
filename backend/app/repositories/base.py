@@ -50,3 +50,11 @@ class BaseInventoryRepository(ABC):
     @abstractmethod
     def get_provider_name(self) -> str:
         pass
+
+    @abstractmethod
+    def claim_notification(self, alert_key: str) -> bool:
+        pass
+
+    @abstractmethod
+    def release_notification(self, alert_key: str) -> None:
+        pass

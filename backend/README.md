@@ -62,6 +62,27 @@ Configure `GEMINI_API_KEY` and `GEMINI_MODEL` in `backend/.env`, then use:
 - `POST /api/v1/ai/voice-parse` with JSON `{ "transcript": "..." }`
 - `POST /api/v1/ai/image-detect` with multipart `image` and optional `transcript`
 
+### Telegram expiry alerts
+
+Create a bot with BotFather, send it a message, and obtain the target chat ID.
+Set these values in `backend/.env`:
+
+```text
+TELEGRAM_BOT_TOKEN=your-bot-token
+TELEGRAM_CHAT_ID=your-chat-id
+TELEGRAM_ALERTS_ENABLED=true
+TELEGRAM_CHECK_INTERVAL_SECONDS=900
+```
+
+The scheduler checks the SQLite inventory every 15 minutes by default and
+sends alerts for items expiring within 24 hours or already expired. Delivery
+keys are stored in SQLite, so the same alert is not sent repeatedly across
+server restarts. You can run a check manually with:
+
+```text
+POST /api/v1/telegram/expiry-check
+```
+
 ---
 
 ## Setup & Installation

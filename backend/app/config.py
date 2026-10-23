@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     # Future integration placeholders
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+    telegram_alerts_enabled: bool = False
+    telegram_check_interval_seconds: int = 900
     esp32_webhook_secret: str = ""
 
     model_config = SettingsConfigDict(
