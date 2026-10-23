@@ -8,6 +8,7 @@ from .routers import (
     telemetry_router,
     alerts_router,
     activities_router,
+    ai_router,
 )
 
 settings = get_settings()
@@ -41,6 +42,7 @@ app.include_router(inventory_router, prefix=settings.api_prefix)
 app.include_router(telemetry_router, prefix=settings.api_prefix)
 app.include_router(alerts_router, prefix=settings.api_prefix)
 app.include_router(activities_router, prefix=settings.api_prefix)
+app.include_router(ai_router, prefix=settings.api_prefix)
 
 
 @app.get("/", include_in_schema=False)

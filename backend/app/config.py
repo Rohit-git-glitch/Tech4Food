@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 
     # Future integration placeholders
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
     esp32_webhook_secret: str = ""
 
     model_config = SettingsConfigDict(

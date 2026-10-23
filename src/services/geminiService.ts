@@ -1,7 +1,7 @@
 import { ParsedVoiceCommand, FoodCategory, FoodItem, StorageLocation, UnitType } from '../types';
 import { getRelativeDate } from '../data/mockData';
 
-const API_URL = import.meta.env.VITE_AI_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_AI_API_URL || 'http://127.0.0.1:8001';
 
 interface GeminiResponse {
   action: 'add' | 'remove' | 'move' | 'unknown';

@@ -81,7 +81,7 @@ export const SettingsPage: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Service interface defined. Ready for Phase 2 API connection.
+                Final FastAPI backend provides inventory, telemetry, alerts, and AI routes on port 8001.
               </p>
             </div>
           </div>
@@ -113,11 +113,11 @@ export const SettingsPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <h4 className="text-xs font-bold text-slate-900">AI Agent (Gemini)</h4>
                 <span className="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full uppercase">
-                  Not connected
+                  Connected through FastAPI
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Gemini is called server-side through FastAPI; configure GEMINI_API_KEY and GEMINI_MODEL in ai-workflow-dev/.env.
+                Gemini is called server-side through FastAPI; configure GEMINI_API_KEY and GEMINI_MODEL in backend/.env.
               </p>
             </div>
           </div>

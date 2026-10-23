@@ -6,7 +6,7 @@ In **Stage 1**, this service provides:
 - Fully validated RESTful CRUD endpoints for food inventory (`/api/v1/inventory`).
 - System health and connectivity diagnostics (`/api/v1/health`).
 - An in-memory repository pre-seeded with sample data compatible with the React frontend.
-- Documented placeholder router contracts for environmental telemetry, safety alerts, and activity audit logs.
+- Gemini text parsing and food-package image detection endpoints.
 - Automated tests verifying all endpoints and error response codes.
 
 ---
@@ -54,6 +54,13 @@ backend/
 ├── requirements.txt           # Python package dependencies
 └── README.md                  # This documentation
 ```
+
+### Gemini AI endpoints
+
+Configure `GEMINI_API_KEY` and `GEMINI_MODEL` in `backend/.env`, then use:
+
+- `POST /api/v1/ai/voice-parse` with JSON `{ "transcript": "..." }`
+- `POST /api/v1/ai/image-detect` with multipart `image` and optional `transcript`
 
 ---
 

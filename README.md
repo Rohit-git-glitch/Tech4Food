@@ -33,8 +33,9 @@ See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rule
 
 ## Gemini AI integration
 
-The frontend calls the FastAPI service for Gemini text parsing and food-image
-detection. Keep the Gemini key on the server in `ai-workflow-dev/.env`:
+The frontend calls the final FastAPI service in `backend/` for Gemini text
+parsing and food-image detection. Keep the Gemini key on the server in
+`backend/.env`:
 
 ```text
 GEMINI_API_KEY=your-key
@@ -44,8 +45,8 @@ GEMINI_MODEL=gemini-2.0-flash
 Start the API from the repository root:
 
 ```powershell
-pip install -r ai-workflow-dev/requirements.txt
-uvicorn api:app --app-dir ai-workflow-dev --reload --port 8000
+pip install -r backend/requirements.txt
+uvicorn app.main:app --app-dir backend --reload --port 8001
 ```
 
 Then start the frontend with `npm run dev`. If the API is unavailable, text
