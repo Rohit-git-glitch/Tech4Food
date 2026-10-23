@@ -15,8 +15,12 @@ def get_health(
     Health check endpoint returning system status, database connection state, and module readiness.
     """
     has_supabase_creds = bool(settings.supabase_url and settings.supabase_key)
-    
-    if has_supabase_creds and not settings.use_in_memory_repo:
+    provider = repo.get_provider_name()
+    if provider == "sqlite":
+        db_provider = "sqlite"
+        db_connected = repo.is_connected()
+        db_message = f"SQLite persistent database active ({settings.sqlite_db_path})"
+    elif has_supabase_creds and not settings.use_in_memory_repo:
         db_provider = "supabase"
         db_connected = False  # Set to true when real network ping succeeds
         db_message = "Supabase configured but live connection validation pending"

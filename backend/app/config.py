@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
 
     # Database & Repository
-    use_in_memory_repo: bool = True
+    use_in_memory_repo: bool = False
+    sqlite_db_path: str = "backend/data/foodguard.db"
     supabase_url: str = ""
     supabase_key: str = ""
 
@@ -40,6 +41,17 @@ class Settings(BaseSettings):
             "http://localhost:5174",
             "http://127.0.0.1:5174",
         ]
+
+    @property
+    def resolved_sqlite_db_path(self) -> str:
+        if os.path.isabs(self.sqlite_db_path):
+            return self.sqlite_db_path
+        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        project_root = os.path.dirname(backend_dir)
+        clean_path = self.sqlite_db_path.replace("\\", "/")
+        if clean_path.startswith("backend/"):
+            return os.path.join(project_root, os.path.normpath(self.sqlite_db_path))
+        return os.path.join(backend_dir, os.path.normpath(self.sqlite_db_path))
 
 
 settings = Settings()
