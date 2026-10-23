@@ -30,3 +30,23 @@ If you are developing a production application, we recommend enabling type-aware
 ```
 
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+## Gemini AI integration
+
+The frontend calls the FastAPI service for Gemini text parsing and food-image
+detection. Keep the Gemini key on the server in `ai-workflow-dev/.env`:
+
+```text
+GEMINI_API_KEY=your-key
+GEMINI_MODEL=gemini-2.0-flash
+```
+
+Start the API from the repository root:
+
+```powershell
+pip install -r ai-workflow-dev/requirements.txt
+uvicorn api:app --app-dir ai-workflow-dev --reload --port 8000
+```
+
+Then start the frontend with `npm run dev`. If the API is unavailable, text
+commands fall back to the local parser; image analysis reports an error.

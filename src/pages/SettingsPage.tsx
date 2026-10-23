@@ -77,7 +77,7 @@ export const SettingsPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <h4 className="text-xs font-bold text-slate-900">FastAPI Backend</h4>
                 <span className="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full uppercase">
-                  Not connected
+                  API connected when backend is running
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
@@ -117,7 +117,7 @@ export const SettingsPage: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Local rule-based heuristic demo parser active. No LLM keys required.
+                Gemini is called server-side through FastAPI; configure GEMINI_API_KEY and GEMINI_MODEL in ai-workflow-dev/.env.
               </p>
             </div>
           </div>

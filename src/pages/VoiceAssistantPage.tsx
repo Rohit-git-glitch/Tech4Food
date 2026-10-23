@@ -15,10 +15,12 @@ import {
   Layers,
   ChevronRight,
   Radio,
+  ImagePlus,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { demoVoiceParser } from '../services/voiceParser';
 import { ParsedVoiceCommand, FoodItem } from '../types';
+import { detectFoodImage, parseWithGemini } from '../services/geminiService';
 
 export const VoiceAssistantPage: React.FC = () => {
   const { inventory, addFoodItem, removeFoodItem, moveFoodItem, showToast } = useApp();
@@ -29,6 +31,8 @@ export const VoiceAssistantPage: React.FC = () => {
   const [transcript, setTranscript] = useState('');
   const [parsedCommand, setParsedCommand] = useState<ParsedVoiceCommand | null>(null);
   const [commandHistory, setCommandHistory] = useState<{ text: string; time: string; success: boolean }[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const recognitionRef = useRef<any>(null);
 
@@ -105,10 +109,39 @@ export const VoiceAssistantPage: React.FC = () => {
     }
   };
 
-  const handleParseCommand = (textToParse: string) => {
+  const handleParseCommand = async (textToParse: string) => {
     if (!textToParse.trim()) return;
-    const result = demoVoiceParser.parse(textToParse, inventory);
-    setParsedCommand(result);
+    setIsProcessing(true);
+    try {
+      setParsedCommand(await parseWithGemini(textToParse));
+    } catch (error) {
+      console.warn('Gemini unavailable; using local parser fallback.', error);
+      setParsedCommand(demoVoiceParser.parse(textToParse, inventory));
+      showToast({
+        type: 'warning',
+        title: 'Gemini unavailable',
+        message: 'Using the local parser. Start the AI API to enable Gemini analysis.',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleImageDetection = async () => {
+    if (!selectedImage) return;
+    setIsProcessing(true);
+    try {
+      setParsedCommand(await detectFoodImage(selectedImage, inputCommand));
+    } catch (error) {
+      console.error('Gemini image detection failed:', error);
+      showToast({
+        type: 'error',
+        title: 'Image analysis failed',
+        message: error instanceof Error ? error.message : 'Could not analyze the image.',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleApplyAction = async () => {
@@ -177,13 +210,13 @@ export const VoiceAssistantPage: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-white">Local Demo Voice Parser</h3>
+              <h3 className="text-sm font-bold text-white">Gemini AI Food Assistant</h3>
               <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
                 Phase 1 Prototype
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-              This demo uses a local client-side intent and entity parser for speech and text. No live Gemini API keys or external LLM endpoints are connected in this standalone frontend demonstration. In Phase 2, audio will route to FastAPI endpoint <code className="text-emerald-400 bg-white/5 px-1 py-0.5 rounded">/api/v1/ai/voice-parse</code> with Google Gemini for advanced zero-shot intent reasoning.
+              Text commands are sent to the FastAPI <code className="text-emerald-400 bg-white/5 px-1 py-0.5 rounded">/api/v1/ai/voice-parse</code> endpoint and food images to <code className="text-emerald-400 bg-white/5 px-1 py-0.5 rounded">/api/v1/ai/image-detect</code>. Gemini extracts food details, estimates shelf life, and reads visible expiry dates. A local parser is used only as a fallback when the API is unavailable.
             </p>
           </div>
         </div>
@@ -265,7 +298,7 @@ export const VoiceAssistantPage: React.FC = () => {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  handleParseCommand(inputCommand);
+                  void handleParseCommand(inputCommand);
                 }}
                 className="flex items-center gap-2"
               >
@@ -278,13 +311,38 @@ export const VoiceAssistantPage: React.FC = () => {
                 />
                 <button
                   type="submit"
-                  disabled={!inputCommand.trim()}
+                  disabled={!inputCommand.trim() || isProcessing}
                   className="px-5 py-2.5 rounded-xl bg-safegreen hover:bg-safegreen-light text-white font-semibold text-xs sm:text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5 shadow-xs"
                 >
                   <Send className="w-4 h-4" />
                   <span>Parse</span>
                 </button>
               </form>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <label className="cursor-pointer px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:border-emerald-500 hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                  <ImagePlus className="w-4 h-4" />
+                  Analyze food image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+                  />
+                </label>
+                {selectedImage && (
+                  <>
+                    <span className="text-xs text-slate-500 truncate max-w-[180px]">{selectedImage.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => void handleImageDetection()}
+                      disabled={isProcessing}
+                      className="px-3 py-2 rounded-xl bg-emerald-700 text-white text-xs font-semibold disabled:opacity-50"
+                    >
+                      {isProcessing ? 'Analyzing...' : 'Detect with Gemini'}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Example Prompt Chips */}
@@ -299,7 +357,7 @@ export const VoiceAssistantPage: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setInputCommand(prompt);
-                      handleParseCommand(prompt);
+                      void handleParseCommand(prompt);
                     }}
                     className="text-xs px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-300 border border-slate-200 text-slate-700 transition-all text-left"
                   >
