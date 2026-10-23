@@ -1,0 +1,253 @@
+import { FoodItem, SafetyAlert, SensorReading, SystemSettings, FoodCategory } from '../types';
+
+// Helper to calculate ISO date relative to today
+export const getRelativeDate = (offsetDays: number, hourOffset = 0): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  d.setHours(d.getHours() + hourOffset);
+  return d.toISOString();
+};
+
+export const DEFAULT_STORAGE_GUIDELINES: Record<FoodCategory, { defaultDays: number; guidance: string; safeTempRange: string }> = {
+  'Dairy & Eggs': {
+    defaultDays: 7,
+    guidance: 'Store on middle or bottom shelves where temperature is consistent (not door). Keep sealed.',
+    safeTempRange: '1°C to 4°C (34°F to 39°F)',
+  },
+  'Meat & Seafood': {
+    defaultDays: 3,
+    guidance: 'Store in bottom drawer or lowest shelf to prevent drip contamination. Freeze if not using within 48h.',
+    safeTempRange: '0°C to 2°C (32°F to 35°F)',
+  },
+  'Produce': {
+    defaultDays: 6,
+    guidance: 'Keep in crisper drawer with appropriate humidity. Keep ethylene producers (apples, bananas) separate.',
+    safeTempRange: '2°C to 5°C (35°F to 41°F)',
+  },
+  'Leftovers': {
+    defaultDays: 4,
+    guidance: 'Cool down within 2 hours of cooking. Store in airtight containers. Reheat to internal 74°C (165°F).',
+    safeTempRange: '1°C to 4°C (34°F to 39°F)',
+  },
+  'Beverages': {
+    defaultDays: 14,
+    guidance: 'Refrigerate once opened. Store pasteurized juices upright. Consume within recommended period.',
+    safeTempRange: '2°C to 4°C (35°F to 39°F)',
+  },
+  'Condiments & Sauces': {
+    defaultDays: 60,
+    guidance: 'Can be stored in the door compartments. Keep rims clean and lids tightly sealed.',
+    safeTempRange: '2°C to 6°C (35°F to 43°F)',
+  },
+  'Bakery': {
+    defaultDays: 5,
+    guidance: 'Keep in cool dry place or freeze. Refrigerator accelerates staling for dry bread, but cakes with dairy need refrigeration.',
+    safeTempRange: 'Room temp or freeze',
+  },
+  'Other': {
+    defaultDays: 7,
+    guidance: 'Check packaging for manufacturer instructions. Inspect aroma and texture before consumption.',
+    safeTempRange: '1°C to 4°C (34°F to 39°F)',
+  },
+};
+
+export const INITIAL_FOOD_ITEMS: FoodItem[] = [
+  {
+    id: 'food-001',
+    name: 'Fresh Whole Milk',
+    category: 'Dairy & Eggs',
+    quantity: 1,
+    unit: 'L',
+    location: 'Refrigerator',
+    dateAdded: getRelativeDate(-5),
+    estimatedShelfLifeDays: 7,
+    estimatedExpiryDate: getRelativeDate(2),
+    storageGuidance: 'Keep refrigerated below 4°C. Consume within 7 days of opening.',
+    status: 'Approaching Expiry',
+    notes: 'Opened 5 days ago.',
+  },
+  {
+    id: 'food-002',
+    name: 'Organic Baby Spinach',
+    category: 'Produce',
+    quantity: 250,
+    unit: 'g',
+    location: 'Pantry/Crisper',
+    dateAdded: getRelativeDate(-4),
+    estimatedShelfLifeDays: 5,
+    estimatedExpiryDate: getRelativeDate(1),
+    storageGuidance: 'High humidity crisper drawer. Keep dry to prevent wilting.',
+    status: 'Approaching Expiry',
+    notes: 'Pre-washed.',
+  },
+  {
+    id: 'food-003',
+    name: 'Atlantic Salmon Fillet',
+    category: 'Meat & Seafood',
+    quantity: 400,
+    unit: 'g',
+    location: 'Refrigerator',
+    dateAdded: getRelativeDate(-2),
+    estimatedShelfLifeDays: 2,
+    estimatedExpiryDate: getRelativeDate(0),
+    storageGuidance: 'Store on lowest shelf. Cook or freeze immediately.',
+    status: 'Requires Attention',
+    notes: 'Raw fresh fish - use today or freeze.',
+  },
+  {
+    id: 'food-004',
+    name: 'Greek Yogurt (Plain)',
+    category: 'Dairy & Eggs',
+    quantity: 500,
+    unit: 'g',
+    location: 'Refrigerator',
+    dateAdded: getRelativeDate(-2),
+    estimatedShelfLifeDays: 10,
+    estimatedExpiryDate: getRelativeDate(8),
+    storageGuidance: 'Store on middle shelf. Keep lid tightly closed.',
+    status: 'Fresh',
+    notes: 'Unopened seal.',
+  },
+  {
+    id: 'food-005',
+    name: 'Free-Range Eggs',
+    category: 'Dairy & Eggs',
+    quantity: 10,
+    unit: 'items',
+    location: 'Refrigerator',
+    dateAdded: getRelativeDate(-6),
+    estimatedShelfLifeDays: 21,
+    estimatedExpiryDate: getRelativeDate(15),
+    storageGuidance: 'Keep in original carton on middle shelf to prevent moisture loss.',
+    status: 'Fresh',
+    notes: 'Carton of 12 (2 used).',
+  },
+  {
+    id: 'food-006',
+    name: 'Chicken Breast Fillets',
+    category: 'Meat & Seafood',
+    quantity: 2,
+    unit: 'packs',
+    location: 'Freezer',
+    dateAdded: getRelativeDate(-10),
+    estimatedShelfLifeDays: 90,
+    estimatedExpiryDate: getRelativeDate(80),
+    storageGuidance: 'Deep frozen at -18°C. Thaw in refrigerator before cooking.',
+    status: 'Fresh',
+    notes: 'Vacuum packed.',
+  },
+  {
+    id: 'food-007',
+    name: 'Homemade Pasta Bolognese',
+    category: 'Leftovers',
+    quantity: 1,
+    unit: 'packs',
+    location: 'Refrigerator',
+    dateAdded: getRelativeDate(-3),
+    estimatedShelfLifeDays: 4,
+    estimatedExpiryDate: getRelativeDate(1),
+    storageGuidance: 'Airtight glass container. Reheat thoroughly to piping hot.',
+    status: 'Approaching Expiry',
+    notes: 'Prepared Tuesday dinner.',
+  },
+  {
+    id: 'food-008',
+    name: 'Strawberries',
+    category: 'Produce',
+    quantity: 300,
+    unit: 'g',
+    location: 'Refrigerator',
+    dateAdded: getRelativeDate(-1),
+    estimatedShelfLifeDays: 5,
+    estimatedExpiryDate: getRelativeDate(4),
+    storageGuidance: 'Do not wash until ready to eat. Keep ventilated in paper towel lined container.',
+    status: 'Fresh',
+    notes: 'Sweet local strawberries.',
+  },
+  {
+    id: 'food-009',
+    name: 'Pure Squeezed Orange Juice',
+    category: 'Beverages',
+    quantity: 1,
+    unit: 'L',
+    location: 'Refrigerator',
+    dateAdded: getRelativeDate(-2),
+    estimatedShelfLifeDays: 10,
+    estimatedExpiryDate: getRelativeDate(8),
+    storageGuidance: 'Keep chilled. Shake well before serving.',
+    status: 'Fresh',
+  },
+  {
+    id: 'food-010',
+    name: 'Aged Cheddar Cheese',
+    category: 'Dairy & Eggs',
+    quantity: 200,
+    unit: 'g',
+    location: 'Refrigerator',
+    dateAdded: getRelativeDate(-8),
+    estimatedShelfLifeDays: 28,
+    estimatedExpiryDate: getRelativeDate(20),
+    storageGuidance: 'Wrap in parchment paper followed by plastic wrap.',
+    status: 'Fresh',
+  },
+];
+
+export const INITIAL_ALERTS: SafetyAlert[] = [
+  {
+    id: 'alert-1',
+    title: 'Food Approaching Estimated Expiry: Atlantic Salmon',
+    message: 'Atlantic Salmon Fillet is at 0 days remaining shelf life in Refrigerator. Recommended action: Cook today or move to Freezer.',
+    severity: 'critical',
+    category: 'expiry',
+    timestamp: getRelativeDate(0, -2),
+    acknowledged: false,
+    relatedFoodItemId: 'food-003',
+  },
+  {
+    id: 'alert-2',
+    title: 'Shelf-Life Notice: Whole Milk & Spinach',
+    message: 'Fresh Whole Milk and Organic Baby Spinach have estimated 1-2 days remaining. Consider planning meals around them.',
+    severity: 'warning',
+    category: 'expiry',
+    timestamp: getRelativeDate(0, -6),
+    acknowledged: false,
+    relatedFoodItemId: 'food-001',
+  },
+  {
+    id: 'alert-3',
+    title: 'Temperature Stability Alert (Sample Reading)',
+    message: 'Sample sensor noted brief door opening excursion (4.6°C) 4 hours ago. Current temperature has stabilized at 3.2°C.',
+    severity: 'info',
+    category: 'temperature',
+    timestamp: getRelativeDate(0, -4),
+    acknowledged: true,
+    acknowledgedAt: getRelativeDate(0, -3),
+  },
+];
+
+// 24-hour realistic temperature timeline (hourly sample data)
+export const INITIAL_SENSOR_HISTORY: SensorReading[] = [
+  { timestamp: '12 AM', timeFull: '00:00', temperature: 2.9, humidity: 64, freezerTemp: -18.4, doorOpen: false, status: 'optimal' },
+  { timestamp: '02 AM', timeFull: '02:00', temperature: 2.8, humidity: 63, freezerTemp: -18.6, doorOpen: false, status: 'optimal' },
+  { timestamp: '04 AM', timeFull: '04:00', temperature: 2.7, humidity: 62, freezerTemp: -18.7, doorOpen: false, status: 'optimal' },
+  { timestamp: '06 AM', timeFull: '06:00', temperature: 3.0, humidity: 63, freezerTemp: -18.3, doorOpen: false, status: 'optimal' },
+  { timestamp: '08 AM', timeFull: '08:00', temperature: 3.8, humidity: 67, freezerTemp: -17.5, doorOpen: true, status: 'optimal' }, // breakfast
+  { timestamp: '10 AM', timeFull: '10:00', temperature: 3.3, humidity: 65, freezerTemp: -18.0, doorOpen: false, status: 'optimal' },
+  { timestamp: '12 PM', timeFull: '12:00', temperature: 4.1, humidity: 68, freezerTemp: -17.2, doorOpen: true, status: 'warning' }, // lunch access
+  { timestamp: '02 PM', timeFull: '14:00', temperature: 3.4, humidity: 65, freezerTemp: -17.9, doorOpen: false, status: 'optimal' },
+  { timestamp: '04 PM', timeFull: '16:00', temperature: 3.1, humidity: 64, freezerTemp: -18.2, doorOpen: false, status: 'optimal' },
+  { timestamp: '06 PM', timeFull: '18:00', temperature: 3.7, humidity: 66, freezerTemp: -17.6, doorOpen: false, status: 'optimal' },
+  { timestamp: '08 PM', timeFull: '20:00', temperature: 4.3, humidity: 69, freezerTemp: -17.1, doorOpen: true, status: 'warning' }, // dinner
+  { timestamp: '10 PM', timeFull: '22:00', temperature: 3.2, humidity: 64, freezerTemp: -18.1, doorOpen: false, status: 'optimal' },
+];
+
+export const DEFAULT_SETTINGS: SystemSettings = {
+  temperatureUnit: 'C',
+  fridgeMinTemp: 1.0,
+  fridgeMaxTemp: 4.0,
+  freezerMinTemp: -22.0,
+  freezerMaxTemp: -16.0,
+  doorAjarSeconds: 120,
+  expiryWarningDays: 2,
+  sampleMode: true,
+};
