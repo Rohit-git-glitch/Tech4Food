@@ -38,14 +38,44 @@ const categoryMap: Record<string, FoodCategory> = {
   Other: 'Other',
 };
 
+const unitMap: Record<string, UnitType> = {
+  item: 'items',
+  items: 'items',
+  piece: 'items',
+  pieces: 'items',
+  serving: 'items',
+  servings: 'items',
+  pack: 'packs',
+  packs: 'packs',
+  slice: 'slices',
+  slices: 'slices',
+  bottle: 'bottles',
+  bottles: 'bottles',
+  can: 'cans',
+  cans: 'cans',
+  gram: 'g',
+  grams: 'g',
+  g: 'g',
+  kilogram: 'kg',
+  kilograms: 'kg',
+  kg: 'kg',
+  milliliter: 'ml',
+  milliliters: 'ml',
+  ml: 'ml',
+  liter: 'L',
+  liters: 'L',
+  l: 'L',
+};
+
 function toParsedCommand(rawTranscript: string, result: GeminiResponse): ParsedVoiceCommand {
   const foodName = result.food_name.trim();
   const shelfLife = result.shelf_life_recommendation_days;
+  const normalizedUnit = unitMap[result.unit.trim().toLowerCase()] || 'items';
   const itemData: Partial<FoodItem> = {
     name: foodName,
     category: categoryMap[result.category] || 'Other',
     quantity: result.quantity && result.quantity > 0 ? result.quantity : 1,
-    unit: (result.unit || 'items') as UnitType,
+    unit: normalizedUnit,
     location: locationMap[result.location],
     estimatedShelfLifeDays: shelfLife || 7,
     estimatedExpiryDate: result.printed_expiry_date || getRelativeDate(shelfLife || 7),

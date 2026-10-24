@@ -4,14 +4,23 @@ from google import genai
 from google.genai import types
 
 from ..config import get_settings
-from ..schemas.ai import FoodCommand
+from ..schemas.ai import FoodCommand, GeminiFoodCommand
 
 
 def _client() -> tuple[genai.Client, str]:
     settings = get_settings()
     if not settings.gemini_api_key:
         raise RuntimeError("GEMINI_API_KEY is not configured.")
-    return genai.Client(api_key=settings.gemini_api_key), settings.gemini_model
+    return (
+        genai.Client(
+            api_key=settings.gemini_api_key,
+            http_options=types.HttpOptions(
+                timeout=45_000,
+                retry_options=types.HttpRetryOptions(attempts=1),
+            ),
+        ),
+        settings.gemini_model,
+    )
 
 
 def parse_transcript(text: str) -> FoodCommand:
@@ -33,7 +42,7 @@ User command: {text}
         contents=prompt,
         config={
             "response_mime_type": "application/json",
-            "response_schema": FoodCommand,
+            "response_schema": GeminiFoodCommand,
         },
     )
     return _validate_response(response.text)
@@ -57,7 +66,7 @@ Return JSON matching the requested schema.
         contents=[types.Part.from_bytes(data=image_bytes, mime_type=mime_type), prompt],
         config={
             "response_mime_type": "application/json",
-            "response_schema": FoodCommand,
+            "response_schema": GeminiFoodCommand,
         },
     )
     return _validate_response(response.text)

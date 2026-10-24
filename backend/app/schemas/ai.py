@@ -22,5 +22,24 @@ class FoodCommand(BaseModel):
     safety_advisory: str = ""
 
 
+class GeminiFoodCommand(BaseModel):
+    action: Literal["add", "remove", "move", "unknown"] = "unknown"
+    food_name: str = ""
+    quantity: float | None = None
+    unit: str = "unknown"
+    location: Literal["Refrigerator", "Freezer", "Pantry", "unknown"] = "unknown"
+    destination_location: Literal[
+        "Refrigerator", "Freezer", "Pantry", "unknown"
+    ] = "unknown"
+    clarification_needed: bool = False
+    clarification_question: str = ""
+    category: str = "Other"
+    shelf_life_recommendation_days: int | None = None
+    printed_expiry_date: str | None = None
+    date_added: str | None = None
+    confidence: float = 0.0
+    safety_advisory: str = ""
+
+
 class TranscriptRequest(BaseModel):
     transcript: str = Field(..., min_length=1)

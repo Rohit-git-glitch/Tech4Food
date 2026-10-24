@@ -39,7 +39,7 @@ parsing and food-image detection. Keep the Gemini key on the server in
 
 ```text
 GEMINI_API_KEY=your-key
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-3.8-flash
 ```
 
 Start the API from the repository root:
